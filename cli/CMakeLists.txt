@@ -1,15 +1,12 @@
+hunter_add_package(Boost COMPONENTS program_options)
 find_package(Boost COMPONENTS program_options)
-
-include_directories(
-  ${Boost_INCLUDE_DIRS}
-  )
 
 add_executable(tokenize
   tokenize.cc
   )
 target_link_libraries(tokenize
   ${PROJECT_NAME}
-  ${Boost_LIBRARIES}
+  Boost::program_options
   )
 
 add_executable(detokenize
@@ -17,7 +14,7 @@ add_executable(detokenize
   )
 target_link_libraries(detokenize
   ${PROJECT_NAME}
-  ${Boost_LIBRARIES}
+  Boost::program_options
   )
 
 install(

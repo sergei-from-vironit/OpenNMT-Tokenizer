@@ -1,4 +1,11 @@
 cmake_minimum_required(VERSION 3.1.0)
+
+include("cmake/HunterGate.cmake")
+HunterGate(
+    URL "https://github.com/ruslo/hunter/archive/v0.18.62.tar.gz"
+    SHA1 "ee82977412cf6c5d6f4b522e571bc7ad91d68b17"
+)
+
 project(OpenNMTTokenizer)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
