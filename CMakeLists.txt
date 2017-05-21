@@ -18,9 +18,6 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 endif()
 
-set(INCLUDE_DIRECTORIES
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
-  )
 set(PUBLIC_HEADERS
   include/onmt/ITokenizer.h
   include/onmt/Tokenizer.h
@@ -39,19 +36,59 @@ add_library(${PROJECT_NAME}
   src/unicode/Unicode.cc
   )
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIRECTORIES})
+target_include_directories(
+    ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+)
 
 if (NOT LIB_ONLY)
   add_subdirectory(cli)
   add_subdirectory(test)
 endif()
 
+####
+# Installation (https://github.com/forexample/package-example)
+
+set(config_install_dir "lib/cmake/${PROJECT_NAME}")
+set(include_install_dir "include")
+
+set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
+
+set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
+set(targets_export_name "${PROJECT_NAME}Targets")
+set(namespace "${PROJECT_NAME}::")
+
+include(CMakePackageConfigHelpers)
+
+# Use:
+#   * targets_export_name
+#   * PROJECT_NAME
+configure_package_config_file(
+    "cmake/Config.cmake.in"
+    "${project_config}"
+    INSTALL_DESTINATION "${config_install_dir}"
+)
+
 install(
-  TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION lib/
-  LIBRARY DESTINATION lib/
-  )
+    TARGETS ${PROJECT_NAME}
+    EXPORT "${targets_export_name}"
+    LIBRARY DESTINATION "lib"
+    ARCHIVE DESTINATION "lib"
+    RUNTIME DESTINATION "bin"
+    INCLUDES DESTINATION "${include_install_dir}"
+)
+
 install(
   FILES ${PUBLIC_HEADERS}
   DESTINATION include/onmt/
   )
+
+install(
+    FILES "${project_config}"
+    DESTINATION "${config_install_dir}"
+)
+
+install(
+    EXPORT "${targets_export_name}"
+    NAMESPACE "${namespace}"
+    DESTINATION "${config_install_dir}"
+)
