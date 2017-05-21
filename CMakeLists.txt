@@ -20,11 +20,6 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 endif()
 
-set(INCLUDE_DIRECTORIES
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
-  ${PROJECT_BINARY_DIR}
-  )
-
 set(PUBLIC_HEADERS
   include/onmt/Alphabet.h
   include/onmt/AnnotatedToken.h
@@ -103,7 +98,7 @@ include(GNUInstallDirs)
 include(GenerateExportHeader)
 string(TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWER)
 generate_export_header(${PROJECT_NAME} EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/onmt/${PROJECT_NAME_LOWER}_export.h)
-target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIRECTORIES})
+target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 target_link_libraries(${PROJECT_NAME} ${LINK_LIBRARIES})
 
 if (NOT LIB_ONLY)
@@ -111,8 +106,29 @@ if (NOT LIB_ONLY)
   add_subdirectory(test)
 endif()
 
+####
+# Installation (https://github.com/forexample/package-example)
+
+set(config_install_dir "lib/cmake/${PROJECT_NAME}")
+set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
+set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
+set(targets_export_name "${PROJECT_NAME}Targets")
+set(namespace "${PROJECT_NAME}::")
+
+include(CMakePackageConfigHelpers)
+
+# Use:
+#   * targets_export_name
+#   * PROJECT_NAME
+configure_package_config_file(
+    "cmake/Config.cmake.in"
+    "${project_config}"
+    INSTALL_DESTINATION "${config_install_dir}"
+)
+
 install(
   TARGETS ${PROJECT_NAME}
+  EXPORT "${targets_export_name}"
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -126,3 +142,14 @@ install(FILES
   include/onmt/unicode/Unicode.h
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/onmt/unicode"
   )
+
+install(
+    FILES "${project_config}"
+    DESTINATION "${config_install_dir}"
+)
+
+install(
+    EXPORT "${targets_export_name}"
+    NAMESPACE "${namespace}"
+    DESTINATION "${config_install_dir}"
+)
