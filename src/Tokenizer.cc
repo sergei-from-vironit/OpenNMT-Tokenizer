@@ -12,6 +12,11 @@
 #endif
 #include "onmt/unicode/Unicode.h"
 
+// Visual Studio doesn't define alternative tokens like 'and' by default.
+// This header should be included explicitly:
+// * https://en.wikipedia.org/wiki/C_alternative_tokens
+#include <iso646.h>
+
 namespace onmt
 {
 
