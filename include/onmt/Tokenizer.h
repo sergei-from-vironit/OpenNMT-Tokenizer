@@ -22,7 +22,7 @@ namespace onmt
 
     Tokenizer(Mode mode = Mode::Conservative,
               const std::string& bpe_model_path = "",
-              bool case_feature = false,
+              bool case_feature = true,
               bool joiner_annotate = false,
               bool joiner_new = false,
               const std::string& joiner = joiner_marker,
