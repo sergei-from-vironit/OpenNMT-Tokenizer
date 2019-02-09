@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.2.0)
 project(OpenNMTTokenizer)
 
 option(WITH_ICU "Compile with ICU" OFF)
