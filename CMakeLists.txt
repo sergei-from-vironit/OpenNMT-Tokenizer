@@ -50,10 +50,25 @@ set(SOURCES
 list(APPEND LINK_LIBRARIES "")
 
 if (WITH_ICU)
+  if(HUNTER_ENABLED)
+    hunter_add_package(ICU)
+    find_package(ICU CONFIG REQUIRED)
+  else()
+
   find_package(ICU REQUIRED)
+
+  endif()
+
   add_definitions(-DWITH_ICU)
+
+  if(HUNTER_ENABLED)
+    list(APPEND LINK_LIBRARIES ICU::uc)
+  else()
+
   list(APPEND INCLUDE_DIRECTORIES ${ICU_INCLUDE_DIRS})
   list(APPEND LINK_LIBRARIES ${ICU_LIBRARIES})
+
+  endif()
 else()
   list(APPEND SOURCES src/unicode/Data.cc)
 endif()
