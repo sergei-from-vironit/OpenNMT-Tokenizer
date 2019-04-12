@@ -13,6 +13,7 @@ int main(int argc, char* argv[])
   desc.add_options()
     ("help", "display available options")
     ("joiner", po::value<std::string>()->default_value(onmt::Tokenizer::joiner_marker), "character used to annotate joiners")
+    ("spacer_annotate", po::bool_switch()->default_value(false), "detokenize on spacers")
     ("case_feature", po::bool_switch()->default_value(false), "first feature is the case")
     ;
 
@@ -26,7 +27,15 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  onmt::ITokenizer* tokenizer = new onmt::Tokenizer(vm["case_feature"].as<bool>(),
+  int flags = 0;
+  if (vm["case_feature"].as<bool>())
+    flags |= onmt::Tokenizer::Flags::CaseFeature;
+  if (vm["spacer_annotate"].as<bool>())
+    flags |= onmt::Tokenizer::Flags::SpacerAnnotate;
+
+  onmt::ITokenizer* tokenizer = new onmt::Tokenizer(onmt::Tokenizer::Mode::Conservative,
+                                                    flags,
+                                                    "",
                                                     vm["joiner"].as<std::string>());
 
   std::string line;

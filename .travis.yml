@@ -3,25 +3,70 @@ language: cpp
 compiler:
   - gcc
   - clang
+env:
+  global:
+    - SENTENCEPIECE_VERSION="0.1.8"
+  matrix:
+    - WITH_ICU="ON"
+    - WITH_ICU="OFF"
+cache:
+  directories:
+    - $HOME/googletest-1.8.0/
+    - $HOME/sentencepiece-$SENTENCEPIECE_VERSION/
 addons:
   apt:
     sources:
       - george-edison55-precise-backports
       - ubuntu-toolchain-r-test
     packages:
-      - gcc-4.8
-      - g++-4.8
       - cmake
       - cmake-data
+      - g++-4.8
+      - gcc-4.8
       - libboost-dev
       - libboost-program-options-dev
+      - libboost-python-dev
+      - libicu-dev
+      - libtool
+      - python-pip
 before_install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   - export ROOT_TRAVIS_DIR=$(pwd)
-  - cd $ROOT_TRAVIS_DIR
+  - |
+    if [ ! -d $HOME/googletest-1.8.0/lib ]; then
+      wget https://github.com/google/googletest/archive/release-1.8.0.tar.gz
+      tar xf release-1.8.0.tar.gz
+      cd googletest-release-1.8.0/
+      mkdir install
+      mkdir build && cd build
+      cmake -DCMAKE_INSTALL_PREFIX=$HOME/googletest-1.8.0/ ..
+      make && make install
+      cd $ROOT_TRAVIS_DIR
+    fi
+  - |
+    if [ ! -d $HOME/sentencepiece-$SENTENCEPIECE_VERSION/lib ]; then
+      wget https://github.com/google/sentencepiece/archive/v$SENTENCEPIECE_VERSION.tar.gz
+      tar xf v$SENTENCEPIECE_VERSION.tar.gz
+      cd sentencepiece-$SENTENCEPIECE_VERSION
+      mkdir build
+      cd build
+      cmake -DCMAKE_INSTALL_PREFIX=$HOME/sentencepiece-$SENTENCEPIECE_VERSION ..
+      make
+      make install
+      cd $ROOT_TRAVIS_DIR
+    fi
+  - pip install --user pytest setuptools
 install:
+  - export TOKENIZER_ROOT=$HOME/Tokenizer
+  - export SENTENCEPIECE_ROOT=$HOME/sentencepiece-$SENTENCEPIECE_VERSION
   - mkdir build && cd build
-  - cmake -DCMAKE_BUILD_TYPE=Release ..
+  - cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$TOKENIZER_ROOT -DCMAKE_PREFIX_PATH=$SENTENCEPIECE_ROOT -DGTEST_ROOT=$HOME/googletest-1.8.0 -DWITH_ICU=$WITH_ICU ..
   - make
+  - make install
+  - cd ../bindings/python
+  - BOOST_PYTHON_LIBRARY=boost_python python setup.py install --user
+  - cd $ROOT_TRAVIS_DIR
+  - export LD_LIBRARY_PATH=$SENTENCEPIECE_ROOT/lib:$TOKENIZER_ROOT/lib
 script:
-  - make check
+  - build/test/onmt_tokenizer_test test/data
+  - pytest bindings/python/test/test.py

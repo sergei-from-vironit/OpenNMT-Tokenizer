@@ -2,13 +2,21 @@
 
 # Tokenizer
 
-Tokenizer is a C++ implementation of OpenNMT tokenization and detokenization.
+This project implements a generic and customizable text tokenization based on the original OpenNMT tokenization tools. It features:
+
+* Fast and generic text tokenization with minimal dependencies
+* Support for BPE and SentencePiece models
+* Efficient training mode for learning subword models
+* Customizable reversible tokenization: marking joints or spaces, with special characters or tokens
+* Advanced text segmentation options: case change, alphabet change, etc.
+* Protected sequences against tokenization with the special characters "｟" and "｠"
+* Easy to use C++ and Python APIs
 
 ## Dependencies
 
-Compiling executables requires:
-
-* `Boost` (`program_options`)
+* (optional) [SentencePiece](https://github.com/google/sentencepiece)
+* (optional) [ICU](http://site.icu-project.org/)
+* (required by clients) [Boost](https://www.boost.org/) (`program_options`)
 
 ## Compiling
 
@@ -21,41 +29,34 @@ cmake -DCMAKE_BUILD_TYPE=<Release or Debug> ..
 make
 ```
 
-It will produce the dynamic library `libtokenizer.so` (or `.dylib` on Mac OS, `.dll` on Windows), and the tokenization tools `cli/tokenize` and `cli/detokenize`.
+It will produce the dynamic library `libOpenNMTTokenizer` and tokenization clients in `cli/`.
 
 ### Options
 
 * To compile only the library, use the `-DLIB_ONLY=ON` flag.
+* To compile with the ICU unicode backend, use the `-DWITH_ICU=ON` flag.
 
 ## Using
 
-### Clients
+The tokenizer can be used in several ways:
 
-See `--help` on the clients to discover available options and usage. They have the same interface as their Lua counterpart.
+* command line clients `cli/tokenize`, `cli/detokenize`, `cli/subword_learn`
+* [C++ API](include/onmt/Tokenizer.h)
+* [Python API](bindings/python)
 
-### Library
+All APIs expose the same set of options. See the [documentation](docs/options.md) for a complete description.
 
-This project is also a convenient way to apply OpenNMT tokenization in existing software.
+### Example
 
-See:
-
-* `include/onmt/Tokenizer.h` to apply OpenNMT's tokenization and detokenization
+```bash
+$ echo "Hello World!" | cli/tokenize --joiner_annotate
+Hello World ￭!
+```
 
 ## Testing
 
-```
-make check
-```
+Tests are using the [Google Test](https://github.com/google/googletest) framework. Once installed, simply compile the project and run:
 
-### Adding new tests
-
-1. Create the input raw text file `<name>_<mode>_<joiner_annotate>_<case_feature>[_<bpe_model>].raw`, where:
-   * `<name>` is the name of the test case without underscore
-   * `<mode>` is the value of the `--mode` option on `cli/tokenize`
-   * `<joiner_annotate>` is the marker of the `--joiner_annotate` option on `cli/tokenize`
-   * `<case_feature>` is the value of the `--case_feature` option on `cli/tokenize` and `cli/detokenize`
-   * *(optional)* `<bpe_model>` is the name of the file in `bpe-models/` for the `--bpe_model` option on `cli/tokenize`
-2. Create the expected tokenized output file `<name>.tokenized`
-3. *(optional)* Create the expected tokenized output file `<name>.tokenized.new` that will be compared to the output produced with the `--joiner_new` option
-3. *(optional)* Create the expected detokenized output file `<name>.detokenized`.
-   If this file is not provided, the detokenization of `<name>.tokenized` and `<name>.tokenized.new` must match the raw input text.
+```
+test/onmt_tokenizer_test ../test/data
+```

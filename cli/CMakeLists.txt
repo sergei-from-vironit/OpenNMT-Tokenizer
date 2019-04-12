@@ -9,6 +9,14 @@ target_link_libraries(tokenize
   Boost::program_options
   )
 
+add_executable(subword_learn
+  learn.cc
+  )
+target_link_libraries(subword_learn
+  ${PROJECT_NAME}
+  ${Boost_LIBRARIES}
+  )
+
 add_executable(detokenize
   detokenize.cc
   )
